@@ -1,62 +1,48 @@
 class tres_en_raya():
-    """
+    instrucciones =      """
     //////////////// TRES EN RAYA //////////////
           EL JUEGO CONSISTE EN EL CONOCIDO JUEGO DE "MICHI"
           EN EL QUE AQUEL QUE COMPLETE UNA LÍNEA O DIAGONAL GANA EL JUEGO 
-
           Reglas:
           -> Si un usuario ingresa una posición que ya está ocupada, pierde su siguiente turno 
           -> El juego terminará con una fila, columna o diagonal completada
           -> EL FORMATO PARA INGRESAR SU POSICIÓN ES FILA:COLUMNA (1:1) 
           -> Si todas las casillas están completas sin ganador, será un empate.
-
     """
-    tablero = [['.', '.', '.'] for _ in range(3)]
-
     def __init__(self) -> None:
-        self._ganadas_jugador_uno = 0
-        self._ganadas_jugador_dos = 0
-        self._partidas_empates = 0
+        self.__ganadas_jugador_uno = 0
+        self.__ganadas_jugador_dos = 0
+        self.__partidas_empates = 0
+        self.tablero = []
 
-    @property
-    def ganadas_jugador_uno(self):
-        return self._ganadas_jugador_uno 
-    @property
-    def ganadas_jugador_dos(self):
-        return self._ganadas_jugador_dos
-    @property
-    def empates(self):
-        return self._partidas_empates
+    def crear_tablero(self):
+        self.tablero = [['.', '.', '.'] for _ in range(3)]
+    def get_resultados_jugador_uno(self):
+        return self.__ganadas_jugador_uno
+    def get_resultados_jugador_dos(self):
+        return self.__ganadas_jugador_dos
+    def get_empates(self):
+        return self.__partidas_empates
     
-    @ganadas_jugador_uno.setter
-    def incrementar_ganadas_uno(self, valor):
-        self._ganadas_jugador_uno+= valor
-    @ganadas_jugador_dos.setter
-    def incrementar_ganadas_dos(self, valor):
-        self._ganadas_jugador_dos+=valor
-
     def incrementar_ganadas(self, jugador):
         match jugador:
-            case 1: self.incrementar_ganadas_uno=1
-            case 2: self.incrementar_ganadas_dos=1
+            case 1: self.__ganadas_jugador_uno+=1
+            case 2: self.__ganadas_jugador_dos+=1
 
-    def impresion(self):
+    def impresion_tablero(self):
         print(f"Columna  1     2     3")
         for indice, fila in enumerate(self.tablero, start=1):
-            print(f"Fila {indice}: {fila}")
-
+           print(f"Fila {indice}: {fila}")
 
     def ingreso_de_jugador(self, jugador):
         entrada = []
         while not (entrada and len(entrada) == 2 and 1<=entrada[0] <4 and 1<=entrada[1]<4):
             try:
-                entrada = list(map(int, input(f"""
-                                Ingrese jugador {jugador} las coordenadas en el siguiente formato:
-                                'FILA:COLUMNA' -> EJEMPLO: 1:2 
-                                """).split(":")))
-            except Exception as e:
+                entrada = list(map(int, input(f"""Ingrese jugador {jugador} las coordenadas en el siguiente formato:'FILA:COLUMNA' -> EJEMPLO: 1:2 """).split(":")))
+            except Exception:
                 continue
         return  (entrada[0]-1, entrada[1]-1) # Ajustar para índice del tablero
+    
     
     def validar_filas_columnas_diagonales(self,caracter):
             if [caracter]*3 in self.tablero:
@@ -74,183 +60,125 @@ class tres_en_raya():
                 return True
             
             return False
+    
     def actualizar_casilla(self,entrada, caracter):
         if self.tablero[entrada[0]][entrada[1]] != '.':
             return False
         else:
             self.tablero[entrada[0]][entrada[1]] = caracter
             return True
-    def menu(self):
-        sanciones = [False, False]  # Sanciones para jugador 1 y 2
-        turno = 1  # Empieza el jugador 1
-        movimientos_restantes = 9  # Hay 9 casillas disponibles
         
+    def menu_tres_en_raya(self):
+        sanciones = [False, False]
+        turno = 1
+        movimientos_restantes = 9
+        self.crear_tablero()
+
         while movimientos_restantes > 0:
-            self.impresion()  # Mostrar el tablero antes de cada jugada
-            
-            # Determinar el símbolo del jugador
+            self.impresion_tablero()
             caracter = 'X' if turno == 1 else 'O'
-            
             if sanciones[turno - 1]:
                 print(f"Jugador {turno} pierde su turno por sanción.")
-                sanciones[turno - 1] = False  # Eliminar sanción
+                sanciones[turno - 1] = False
             else:
                 entrada = self.ingreso_de_jugador(turno)
-                self.impresion()
                 if not self.actualizar_casilla(entrada, caracter):
-                    print(f"Jugador {turno}, la casilla ya está ocupada. Sanción aplicada.")
-                    self.impresion()
-                    sanciones[turno - 1] = True  # Sancionar si la casilla está ocupada
+                    print(f"Jugador {turno}, la casilla ya está ocupada. Pierdes tu turno.")
+                    sanciones[turno - 1] = True
                 else:
-                    movimientos_restantes -= 1  # Reducir el número de movimientos restantes
-                    
-                    # Verificar si el jugador ha ganado
-                    if self.validar_filas_columnas_diagonales( caracter):
-                        self.impresion()
+                    movimientos_restantes -= 1
+                    if self.validar_filas_columnas_diagonales(caracter):
+                        self.impresion_tablero()
                         print(f"¡Jugador {turno} ha ganado!")
                         self.incrementar_ganadas(turno)
-                        return None
-
-            # Cambiar de turno (Jugador 1 -> 2 o Jugador 2 -> 1)
+                        return
             turno = 2 if turno == 1 else 1
-        
-        self.impresion()  # Mostrar el tablero final en caso de empate
-        self._partidas_empates+=1
+        self.impresion_tablero()
         print("El juego ha terminado en empate.")
+        self.partidas_empates += 1
 
 from random import randint
-
-class Adivinar_numero():
-    """
-    ////////////BIENVENIDO AL JUEGO DE ADIVINAR EL NUMERO////////////
+class adivinar_numero():
+    instrucciones =    """
+    //////////// ADIVINAR EL NÚMERO //////////
           REGLAS:
-          -> Usted tiene 6 intentos de poder hallar el numeor 
-          -> si pasa el tiempo usted perdio 
-          -> Se le dara instrucciones de cuando usted este cerca o no de hallar el numero 
-
-        """
-    numero_a_descubrir= randint(0,10)
-
+          -> Tiene 6 intentos para adivinar el número generado aleatoriamente.
+          -> El juego indicará si el número a adivinar es mayor o menor.
+    """
     def __init__(self) -> None:
-        self._veces_perdidas = 0
-        self._veces_ganadas = 0
+        self.__veces_perdidas = 0
+        self.__veces_ganadas = 0
 
-    @property
-    def veces_ganadas(self):
-        return self._veces_ganadas
-    @property
-    def veces_perdidas(self):
-        return self._veces_perdidas
+    def get_veces_perdidas(self):
+        return self.__veces_perdidas
+
+    def get_veces_ganadas(self):
+        return self.__veces_ganadas
     
     def descubrir_numero(self):
+        numero_a_descubrir = randint(0, 20)
         intentos = 6
         while intentos>0:
             try:
                 entrada = int(input("Ingrese numero: "))
-                if entrada < self.numero_a_descubrir:
-                    print("ES MENOR")
+                if entrada < numero_a_descubrir:
+                    print("EL NUMERO ES MENOR")
                 else:
-                    print("ES MAYOR")
-                if entrada == self.numero_a_descubrir:
+                    print("EL NUMERO ES MAYOR")
+                if entrada == numero_a_descubrir:
                     print(F"GANASTE EN EL INTENTO {6-intentos}")
                     self.veces_ganadas+=1
                     return None
-            except Exception as e:
+            except Exception:
                 continue
             finally:
-                intentos-=1
-        self.veces_perdidas+=1
-        
-class estadisticas():
-        def __init__(self, tres_en_raya, adivinar_numero ) -> None:
-            self._contadores = [
-                [
-                tres_en_raya.ganadas_jugador_uno,
-                tres_en_raya.ganadas_jugador_dos,
-                tres_en_raya.empates
-                ],
-                [
-                    adivinar_numero.veces_ganadas,
-                    adivinar_numero.veces_perdidas
-                ]
-            ]
-            self._graficos = []
-            self._porcentajes = {
-                "ganadas_tres_en_raya":0,
-                "adivinar_numero": 0,
-                "ganar_algun_juego":0
-            }
+                intentos-=1            
+        print(f"El número era {numero_a_descubrir}. No adivinaste.")
+        self.__veces_perdidas += 1
 
-        @property
-        def graficos(self):
-            return self._graficos
-        @property
-        def porcentajes(self):
-            return self._porcentajes    
-        @property
-        def contadores(self):
-            return self._contadores
-        @graficos.setter
-        def set_graficos (self, valor):
-            self.graficos = valor
+class reportes():
+        def __init__(self, tres_en_raya, adivinar_numero) -> None:
+            self.__contadores = [[tres_en_raya.get_resultados_jugador_uno(), tres_en_raya.get_resultados_jugador_dos(),tres_en_raya.get_empates()], [ adivinar_numero.get_veces_ganadas(),adivinar_numero.get_veces_perdidas()]]
+            self.__graficos = []
+            self.__porcentajes = {"ganadas_tres_en_raya":0,"adivinar_numero": 0,"ganar_algun_juego":0}
 
-        
-        def graficos_creador(self):
-            def creacion_grafico(*data_partidas):
-                tamano =  max(data_partidas)+3
-                grafico = [['.' for _ in range(len(data_partidas)+1)] for _ in range(tamano)]
-                for indice, victorias in enumerate(data_partidas):
-                    for fila in range(tamano-1, (tamano-victorias)-1, -1):
+        def matriz_grafica(self, *data_partidas):
+            tamano =  max(data_partidas)+3
+            grafico = [['.' for _ in range(len(data_partidas)+1)] for _ in range(tamano)]
+            for indice, victorias in enumerate(data_partidas):
+                for fila in range(tamano-1, (tamano-victorias)-1, -1):
                         grafico[fila][indice]='*'
-                promedio = sum(data_partidas) // len(data_partidas)
-                for fila in range(tamano-1, (tamano-promedio)-1, -1):
-                    grafico[fila][3]= '*'
-                return grafico
-            graficos = [
-                creacion_grafico(# victorias
-                self.contadores[0][1], 
-                self.contadores[0][2],
-                self.contadores[1][0]
-                ),
-                creacion_grafico(# perdidas
-                    self.contadores[1][1],
-                    self.contadores[0][2],
-                    self.contadores[0][1]
-                )
-                
-            ]    
-            self.set_graficos = [grafico for grafico in graficos]
-    
+            promedio = sum(data_partidas) // len(data_partidas)
+            for fila in range(tamano-1, (tamano-promedio)-1, -1):
+                grafico[fila][3]= '*'
+            return grafico
+        def set_graficos(self, graficos):
+            self.__graficos = [grafico for grafico in graficos]
+        def graficos_creador(self):
+            graficos = [self.matriz_grafica(self.__contadores[0][1], self.__contadores [0][2],self.__contadores[1][0]),
+                        self.matriz_grafica(self.__contadores[1][1],self.__contadores[0][2],self.__contadores [0][1])]       
+            self.set_graficos(graficos)
+
+        def porcentaje(self, *numeros):
+            try:
+                return sum(numeros[0])*100/sum(self.__contadores[1])
+            except Exception:
+                return 0
         def porcentajes_calcular_imprimir(self):
-            def porcentaje(*numeros):
-                return sum(numeros[0])*100/sum(self.contadores[1])
-
-            self.porcentajes["ganadas_tres_en_raya"] =porcentaje(
-                        (self.contadores[0][1],self.contadores[0][0])
-                    , self.contadores[0]
-                    )            
-            self.porcentajes["adivinar_numero"]=porcentaje(# adivinar numero
-                                        self.contadores[1][0] if not self.contadores[1][0]==0 else 1 , 
-                                        self.contadores[1] )
+            self.__porcentajes["ganadas_tres_en_raya"] =self.porcentaje( (self.__contadores [0][1],self.__contadores [0][0])  , self.__contadores[0] )            
+            self.__porcentajes["adivinar_numero"]=self.porcentaje(self.__contadores [1][0] if not self.__contadores [1][0]==0 else 1 , self.__contadores[1] )
                                         
-            self.porcentajes["ganar_algun_juego"]= porcentaje(# porcentaje de ganar en algun juego 
-                                    (self.contadores[0][1],self.contadores[0][2],self.contadores[1][0]),
-                                    (self.contadores[0],self.contadores[1])
-                                    )
-
-            
-
-            for estadistica,valor in self.porcentajes.items():
+            self.__porcentajes["ganar_algun_juego"]= self.porcentaje((self.__contadores [0][1],self.__contadores [0][2],self.__contadores [1][0]),(self.__contadores[0],self.__contadores [1]) )
+        
+            for estadistica,valor in self.__porcentajes.items():
                 print(f"porcentaje {estadistica}:{valor}")
 
-
-        def impresion(self):
-            def imprimir_grafico(grafico):
+        def imprimir_grafico(self, grafico):
                 for indice,fila in enumerate(grafico):
                     print(f"{len(grafico)-indice}: {fila}")
-            
+        def impresion(self):
+
             self.graficos_creador()
-            self.porcentajes_calcular_imprimir()
             entrada= 0
             while not (1<=entrada<=4):
                 print(f"""
@@ -266,7 +194,7 @@ class estadisticas():
                     continue
                 match entrada:
                     case 1:
-                        imprimir_grafico(self.graficos[0])            
+                        self.imprimir_grafico(self.__graficos[0])            
                         print("""
                             Primera columna: victorias jugador uno (tres en raya)
                             Segunda columna: victorias jugador dos (tres en raya) 
@@ -274,31 +202,26 @@ class estadisticas():
                             Cuarta columna: promedio de victorias en los juegos       
                             """)
                     case 2:
-                        imprimir_grafico(self.graficos[1])
+                        self.imprimir_grafico(self.__graficos[1])
                         print(""" Primera columna : derrotas de adivinar el numero
                                 Segunda columna: derrotas del  jugador  uno (tres en raya) 
                                 Tercer columna: derrotas del jugador dos (tres en raya)
                                 Cuarta columna: promedio de derrotas en partidas
                                     """)
                     case 3:
-                        self.porcentajes_calcular_imprimir()
+                        if self.porcentajes_calcular_imprimir() != True:
+                            print(f"Por favor llene los valores")
+                    case 4:
+                        return 
                 entrada = -1
 
 
-        
-class Consola():
+class consola():
     def __init__(self) -> None:
-        self._tres_en_Raya = tres_en_raya()
-        self._adivinar_numero = Adivinar_numero()
-    @property
-    def tres_en_raya_g(self):
-        return self._tres_en_Raya
-    @property
-    def adivinar_numero_g(self):
-        return self._adivinar_numero
+        self.__tres_en_raya =  tres_en_raya()
+        self.__adivinar_numero = adivinar_numero()
 
-    def menu(self):
-        
+    def menu_principal(self):
         entrada = -1
         while not (1<=entrada<4):
             print(
@@ -307,23 +230,23 @@ class Consola():
                 1. ingrese al tres en raya 
                 2. ingrese al detectector de numero aleatorio 
                 3. estadisticas
-
+                4. salir
+                
                 """)
             entrada =  int(input("Ingrese su seleccion: "))
             match entrada:
                 case 1: 
-                    print(self.tres_en_raya_g.__doc__)
-                    self.tres_en_raya_g.menu()                        
+                    print(self.__tres_en_raya.instrucciones)
+                    self.__tres_en_raya.menu_tres_en_raya()                        
                 case 2:
-                    print(self.adivinar_numero_g.__doc__)
-                    self.adivinar_numero_g.descubrir_numero()
+                    print(self.__adivinar_numero.instrucciones)
+                    self.__adivinar_numero.descubrir_numero()
                 case 3: 
-                    estadistica = estadisticas(tres_en_raya=self.tres_en_raya_g, adivinar_numero=self.adivinar_numero_g )
+                    estadistica = reportes(tres_en_raya=self.__tres_en_raya, adivinar_numero= self.__adivinar_numero)
                     estadistica.impresion()
                 case 4:
                     exit(1)
-            entrada=-1
-
-if __name__ == "__main__":
-    juego =  Consola()
-    juego.menu()
+            entrada=-1   
+        
+Consola = consola()
+Consola.menu_principal()
