@@ -1,6 +1,11 @@
 class tres_en_raya():
-    instrucciones =      """
-    //////////////// TRES EN RAYA //////////////
+    def __init__(self):
+        self.__ganadas_jugador_uno = 0
+        self.__ganadas_jugador_dos = 0
+        self.__partidas_empates = 0
+        self.tablero = []
+        self.instrucciones = """
+          //////////////// TRES EN RAYA //////////////
           EL JUEGO CONSISTE EN EL CONOCIDO JUEGO DE "MICHI"
           EN EL QUE AQUEL QUE COMPLETE UNA LÍNEA O DIAGONAL GANA EL JUEGO 
           Reglas:
@@ -8,13 +13,7 @@ class tres_en_raya():
           -> El juego terminará con una fila, columna o diagonal completada
           -> EL FORMATO PARA INGRESAR SU POSICIÓN ES FILA:COLUMNA (1:1) 
           -> Si todas las casillas están completas sin ganador, será un empate.
-    """
-    def __init__(self) -> None:
-        self.__ganadas_jugador_uno = 0
-        self.__ganadas_jugador_dos = 0
-        self.__partidas_empates = 0
-        self.tablero = []
-
+        """
     def crear_tablero(self):
         self.tablero = [['.', '.', '.'] for _ in range(3)]
     def get_resultados_jugador_uno(self):
@@ -48,11 +47,10 @@ class tres_en_raya():
             if [caracter]*3 in self.tablero:
                 return True
                 
-            # Verificar columnas
             for columna in range(3):
                 if [self.tablero[fila][columna] for fila in range(3)] == [caracter] * 3:
                     return True
-            # Verificar diagonales
+   
             diagonal_normal = [self.tablero[i][i] for i in range(3)]
             diagonal_inversa = [self.tablero[i][2-i] for i in range(3)]
 
@@ -77,13 +75,13 @@ class tres_en_raya():
         while movimientos_restantes > 0:
             self.impresion_tablero()
             caracter = 'X' if turno == 1 else 'O'
-            if sanciones[turno - 1]:
+            if sanciones[turno - 1] == True:
                 print(f"Jugador {turno} pierde su turno por sanción.")
                 sanciones[turno - 1] = False
             else:
                 entrada = self.ingreso_de_jugador(turno)
                 if not self.actualizar_casilla(entrada, caracter):
-                    print(f"Jugador {turno}, la casilla ya está ocupada. Pierdes tu turno.")
+                    print(f"Jugador {turno} la casilla ya está ocupada. Pierdes tu turno.")
                     sanciones[turno - 1] = True
                 else:
                     movimientos_restantes -= 1
@@ -92,23 +90,27 @@ class tres_en_raya():
                         print(f"¡Jugador {turno} ha ganado!")
                         self.incrementar_ganadas(turno)
                         return
-            turno = 2 if turno == 1 else 1
+            if turno == 1:
+                turno = 2
+            else:
+                turno = 1            
+            
         self.impresion_tablero()
         print("El juego ha terminado en empate.")
         self.partidas_empates += 1
 
 from random import randint
 class adivinar_numero():
-    instrucciones =    """
+ 
+    def __init__(self):
+        self.__veces_perdidas = 0
+        self.__veces_ganadas = 0
+        self.instrucciones =    """
     //////////// ADIVINAR EL NÚMERO //////////
           REGLAS:
           -> Tiene 6 intentos para adivinar el número generado aleatoriamente.
           -> El juego indicará si el número a adivinar es mayor o menor.
     """
-    def __init__(self) -> None:
-        self.__veces_perdidas = 0
-        self.__veces_ganadas = 0
-
     def get_veces_perdidas(self):
         return self.__veces_perdidas
 
@@ -127,12 +129,11 @@ class adivinar_numero():
                     print("EL NUMERO ES MAYOR")
                 if entrada == numero_a_descubrir:
                     print(F"GANASTE EN EL INTENTO {6-intentos}")
-                    self.veces_ganadas+=1
+                    self.__veces_ganadas+=1
                     return None
             except Exception:
                 continue
-            finally:
-                intentos-=1            
+            intentos-=1            
         print(f"El número era {numero_a_descubrir}. No adivinaste.")
         self.__veces_perdidas += 1
 
@@ -161,7 +162,7 @@ class reportes():
 
         def porcentaje(self, *numeros):
             try:
-                return sum(numeros[0])*100/sum(self.__contadores[1])
+                return sum(numeros[0])*100/len(self.__contadores[1])
             except Exception:
                 return 0
         def porcentajes_calcular_imprimir(self):
@@ -203,7 +204,8 @@ class reportes():
                             """)
                     case 2:
                         self.imprimir_grafico(self.__graficos[1])
-                        print(""" Primera columna : derrotas de adivinar el numero
+                        print("""
+                                 Primera columna : derrotas de adivinar el numero
                                 Segunda columna: derrotas del  jugador  uno (tres en raya) 
                                 Tercer columna: derrotas del jugador dos (tres en raya)
                                 Cuarta columna: promedio de derrotas en partidas
@@ -217,7 +219,7 @@ class reportes():
 
 
 class consola():
-    def __init__(self) -> None:
+    def __init__(self):
         self.__tres_en_raya =  tres_en_raya()
         self.__adivinar_numero = adivinar_numero()
 
@@ -245,7 +247,7 @@ class consola():
                     estadistica = reportes(tres_en_raya=self.__tres_en_raya, adivinar_numero= self.__adivinar_numero)
                     estadistica.impresion()
                 case 4:
-                    exit(1)
+                    break
             entrada=-1   
         
 Consola = consola()
