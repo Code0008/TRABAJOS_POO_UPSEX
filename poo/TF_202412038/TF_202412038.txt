@@ -1,0 +1,264 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+class Manejador:
+    def __init__(self):
+        self.lista_de_colores = ['blue', 'red', 'green', 'yellow', 'orange', 'pink', 'purple', 'brown', 'blue', 'red']
+        self.lista_de_tipo_de_lineas = ['-', '--', '-.', ':', '-', '--', '-.', ':']
+        self.__lista_continentes = ['Europa', 'AméricaN', 'AméricaC', 'AméricaS', 'Asia', 'África', 'Oceanía', 'Otros']
+        self.__dfsalida = pd.DataFrame()
+        self.__dfentrada = pd.DataFrame()
+        self.__dfproyecta2021 = pd.DataFrame()
+
+    def leer_dataframes(self):
+        self.__dfsalida = pd.read_excel('DATOS.xlsx', sheet_name='Salida')
+        self.__dfentrada = pd.read_excel('DATOS.xlsx', sheet_name='Entrada')
+        self.__dfproyecta2021 = pd.read_csv("base_poblacion_proyectada2021.csv", delimiter=";")
+
+    def grafico_lineas_salida(self, salida, ano_inicio, ano_fin, continentes, colores, lineas):
+        plt.figure(figsize=(10, 7))
+        filtro = (salida['Año'] >= ano_inicio) & (salida['Año'] <= ano_fin)  # máscara booleana
+        datos_filtrados_S = salida[filtro]
+        Anos = datos_filtrados_S['Año']
+        plt.xlabel('Año')
+        plt.ylabel('Cantidad de Peruanos')
+        plt.title(f'Tendencia de Salida de Peruanos por Continente ({ano_inicio}-{ano_fin})')
+        for i in range(len(continentes)):
+            plt.plot(Anos, datos_filtrados_S[continentes[i]], linestyle=lineas[i], color=colores[i], label=continentes[i])
+            plt.yscale('log')
+            plt.yticks([10, 100, 1000, 10000, 100000, 250000, 500000, 1000000, 3000000], ['10', '100', '1000', '10000', '100000', '250000', '500000', '1000000', '3000000'])
+            plt.xticks(range(ano_inicio, ano_fin + 1))
+        plt.legend()
+        plt.show()
+
+    def grafica_lineas_entrada(self, entrada, ano_inicio, ano_fin, continentes, colores, lineas):
+        plt.figure(figsize=(10, 7))
+        datos_filtrados_E = entrada[(entrada['Año'] >= ano_inicio) & (entrada['Año'] <= ano_fin)]
+        Anos = datos_filtrados_E['Año']
+        plt.xlabel('Año')
+        plt.ylabel('Cantidad de Peruanos')
+        plt.title(f'Tendencia de entrada de Peruanos por Continente ({ano_inicio}-{ano_fin})')
+        for i in range(len(continentes)):
+            plt.plot(Anos, datos_filtrados_E[continentes[i]], linestyle=lineas[i], color=colores[i], label=continentes[i])
+            plt.yscale('log')
+            plt.yticks([10, 100, 1000, 10000, 100000, 250000, 500000, 1000000, 3000000], ['10', '100', '1000', '10000', '100000', '250000', '500000', '1000000', '3000000'])
+            plt.xticks(range(ano_inicio, ano_fin + 1))
+        plt.legend()
+        plt.show()
+
+    def graficar_barras_vertical_2023(self, entrada, salida, continente_elegido, continentes, colores, lineas):
+        plt.figure(figsize=(8, 5))
+        dfS_2023 = salida[salida['Año'] == 2023]
+        dfE_2023 = entrada[entrada['Año'] == 2023]
+        plt.xlabel('Salidas y entradas en 2023')
+        plt.ylabel('Cantidad de Peruanos')
+        for i in range(len(continentes)):
+            if continentes[i] == continente_elegido:
+                plt.bar(2023, dfS_2023[continentes[i]], color=colores[i], label=f'Salidas desde {continentes[i]}')
+                plt.bar(2024, dfE_2023[continentes[i]], color=colores[i + 1], label=f'Entradas desde {continentes[i]}')
+                ComienzoY = min(int(dfS_2023[continentes[i]].values[0]), int(dfE_2023[continentes[i]].values[0]))
+                FinalY = max(int(dfE_2023[continentes[i]].values[0]), int(dfS_2023[continentes[i]].values[0]))
+                paso = (FinalY - ComienzoY) // 1
+                plt.yticks(range(ComienzoY, FinalY + paso, paso))
+                plt.xticks([2023, 2024], [f"Salidas a {continentes[i]} en 2023", f"Entradas desde {continentes[i]} en 2023"])
+        plt.legend()
+        plt.show()
+
+    def graficar_barras_horizontal_2021(self, entrada, salida, proyectada, continente_elegido, continentes, colores, lineas):
+        dfS_2021 = salida[salida['Año'] == 2021]
+        dfE_2021 = entrada[entrada['Año'] == 2021]
+        dfp_2021 = proyectada["Cantidad"].sum()
+        plt.figure(figsize=(16, 6))
+        if continente_elegido == "Todos":
+            plt.xlabel('Cantidad de Peruanos')
+            plt.ylabel('Población, entradas y salidas en 2021')
+            plt.title(f'Tendencia de entrada, salidas y población de peruanos (2021)')
+            plt.barh(2020, dfp_2021, color=colores[-1], label="Población peruana en miles")
+            for i in range(len(continentes)):
+                plt.barh(2021 + 2 * i, dfS_2021[continentes[i]], color=colores[i], label=f'Salidas desde {continentes[i]}')
+                plt.barh(2022 + 2 * i, dfE_2021[continentes[i]], color=colores[i], label=f'Entradas desde {continentes[i]}')
+                plt.xscale('log')
+                plt.xticks([10, 1000, 100000, 3000000, 30000000], ['10', '1000', '100000', '3000000', '30000000'])
+                años = range(2020, 2020 + len(continentes) * 2 + 1)
+                intercalado = ['Poblacion']
+                for continente in continentes:
+                    intercalado.append(f"Salidas {continente}")
+                    intercalado.append(f"Entradas {continente}")
+                plt.yticks(años, intercalado)
+            plt.legend()
+            plt.show()
+        else:
+            plt.xlabel('Cantidad de Peruanos')
+            plt.ylabel('Población, entrada y salida en 2021')
+            plt.title(f'Tendencia de entrada, salida y la población proyectada de Peruanos por Continente (2021)')
+            for i in range(len(continentes)):
+                if continentes[i] == continente_elegido:
+                    salida_valor = dfS_2021[continentes[i]].values[0]
+                    if salida_valor < 1000:
+                        Multiplicador = 10000
+                    elif salida_valor < 100000:
+                        Multiplicador = 350
+                    elif salida_valor < 1000000:
+                        Multiplicador = 50
+                    else:
+                        Multiplicador = 1
+                    plt.barh(2021, dfS_2021[continentes[i]] * Multiplicador, color=colores[i], label=f'Salidas desde {continentes[i]}')
+                    plt.barh(2022, dfE_2021[continentes[i]] * Multiplicador, color=colores[i + 1], label=f'Entradas desde {continentes[i]}')
+                    plt.barh(2023, dfp_2021, color=colores[i + 2], label="Población peruana en miles")
+                    plt.xticks([dfS_2021[continentes[i]].values[0] * Multiplicador, dfE_2021[continentes[i]].values[0] * Multiplicador, dfp_2021],
+                               [f'{dfS_2021[continentes[i]].values[0]}', f'{dfE_2021[continentes[i]].values[0]}', f'{dfp_2021}'])
+            plt.legend()
+            plt.yticks([2021, 2022, 2023], ["Salidas en 2021", "Entradas en 2021", "Población peruana en miles"])
+            plt.show()
+    def regresion_lineal(self):
+        continente = input("Ingrese continente: ")
+        seleccion_dataframe =  input("""
+          1. Salida
+          2. Entrada
+          Ingrese: """)
+        dataframe_seleccionado =  self.__dfsalida if seleccion_dataframe == 1 else self.__dfentrada
+        if seleccion_dataframe ==1:
+            tipo="salida"
+            dirección="hacia"
+        else:
+            tipo="entrada"
+            dirección="desde"
+        plt.title(f"Regresion lineal dataframe {tipo} prediciendo la {tipo} de peruanos para el 2024 {dirección} {continente}")
+        X =  np.arange(2008,2024)
+        y =  dataframe_seleccionado[continente]
+        n = len(X)
+
+        X_mean = np.mean(X)
+        y_mean = np.mean(y)
+
+        numerador = np.sum((X - X_mean) * (y - y_mean))
+        denominador = np.sum((X - X_mean) ** 2)
+        coef = numerador / denominador
+        intercepto = y_mean - coef * X_mean
+
+
+
+        plt.scatter(X, y, color='blue', label='Datos')
+        yes = (coef * X + intercepto) # para la lenea
+        plt.plot(X, yes, color='red', label='Línea de regresión')
+        x_nuevo = 2024
+        y_nuevo = (coef * x_nuevo+ intercepto)
+        plt.scatter(x_nuevo, y_nuevo, color="purple", label="Predicho")
+
+        plt.legend()
+        plt.show()
+    def histograma_porcentaje_salida_continente(self, continente):
+        fig, axs = plt.subplots(1, 2)
+        datos_continente = [self.__dfentrada[continente], self.__dfsalida[continente]]
+        fig.set_size_inches(13, 14)
+        porcentaje_salida = datos_continente[1] * 100 / datos_continente[1].sum()
+        porcentaje_entrada = datos_continente[0] * 100 / datos_continente[0].sum()
+        axs[0].hist(porcentaje_salida, label="Salida", edgecolor="black")
+        axs[0].set_title("Porcentaje Salida Continente")
+        axs[0].legend()
+        axs[1].hist(porcentaje_entrada, label="Entrada", edgecolor="black")
+        axs[1].set_title("Porcentaje Entrada Continente")
+        axs[1].legend()
+        plt.show()
+    def exportar_datos(self):
+        print("""
+            1. Exportar datos Salida
+            2. Exportar datos entrada
+            3. Exportar ambos 
+            """)        
+        opcion = int(input("Ingrese su seleccion: "))
+        ano_inicio, ano_fin =  tuple(map(int, input("""
+            ingree año de inicio: año fin en el formato
+                        20xx:20xx
+            """).split(":")))
+        
+        guia_indices_para_crear_lista_anios =  list(range(2008, 2024))
+        lista_anios = list(range(guia_indices_para_crear_lista_anios.index(ano_inicio), guia_indices_para_crear_lista_anios.index(ano_fin)+1))
+        continentes = []    
+        ocpion_contin  = -1
+        print(lista_anios)
+        while not (ocpion_contin in ['x', 'X']):
+            print(self.__lista_continentes)
+            ocpion_contin = input("""
+                                  Ingree continente que desee ver 
+                                  o
+                                  ingrese 'x' para salir de seleccion """)
+            
+            if ocpion_contin in self.__lista_continentes:
+                continentes.append(ocpion_contin)
+        continentes.insert(0,"Año")
+        print(continentes)
+        print(f"""
+        SELECCIONE FORMATO DE SALIDA:
+              1. CSV
+              2. EXCEL 
+        """)
+        selec_formato =  int(input("Ingrese opcion: "))
+        nombre_de_archivo = input("Ingrese nombre de archivo ")
+        match opcion:
+            case 3:
+                match selec_formato:
+                    case 1:        
+                        self.__dfsalida.loc[lista_anios,continentes].to_csv(f"{nombre_de_archivo}_salida.csv")
+                        self.__dfentrada.loc[lista_anios, continentes].to_csv(f"{nombre_de_archivo}_entrada.csv")
+                    case 2:
+                        self.__dfsalida.loc[lista_anios, continentes].to_excel(f"{nombre_de_archivo}_salida.xlsx")
+                        self.__dfentrada.loc[lista_anios, continentes].to_excel(f"{nombre_de_archivo}_salida.xlsx")
+            case 2:
+                match selec_formato:
+                    case 1:
+                        self.__dfentrada.loc[lista_anios, continentes].to_csv(f"{nombre_de_archivo}_entrada.csv")
+                    case 2:
+                        self.__dfentrada.loc[lista_anios, continentes].to_excel(f"{nombre_de_archivo}_salida.xlsx")
+            case 1:
+                match selec_formato:
+                    case 1:
+                        self.__dfsalida.loc[lista_anios, continentes].to_csv(f"{nombre_de_archivo}_salida.csv")
+                    case 2:
+                        self.__dfentrada.loc[lista_anios, continentes].to_excel(f"{nombre_de_archivo}_salida.xlsx")
+
+    def menu(self):
+        print("Menú de opciones")
+        print("1. Gráfico de Líneas de la Salida (AÑO A – AÑO B)")
+        print("2. Gráfico de Líneas de la Entrada (AÑO A – AÑO B)")
+        print("3. Gráfico de Barras Verticales 2023")
+        print("4. Gráfico de Barras Horizontales 2021")
+        print("5. Regresión Lineal")
+        print("6. Histograma Porcentaje Salida y Entrada por Continente")
+        print("7. Exportar datos")
+        print("8. Salir")
+        self.leer_dataframes()
+        opcion = -1
+        while not opcion == 8:
+          
+          opcion = int(input("Seleccione una opción: "))
+          if opcion == 1:
+              ano_inicio = int(input("Ingrese el año de inicio: "))
+              ano_fin = int(input("Ingrese el año de fin: "))
+              self.grafico_lineas_salida(self.__dfsalida, ano_inicio, ano_fin, self.__lista_continentes, self.lista_de_colores, self.lista_de_tipo_de_lineas)
+          elif opcion == 2:
+              ano_inicio = int(input("Ingrese el año de inicio: "))
+              ano_fin = int(input("Ingrese el año de fin: "))
+              self.grafica_lineas_entrada(self.__dfentrada, ano_inicio, ano_fin, self.__lista_continentes, self.lista_de_colores, self.lista_de_tipo_de_lineas)
+          elif opcion == 3:
+              continente_elegido = input(f"Escriba un continente: {', '.join(self.__lista_continentes)}: ")
+              self.graficar_barras_vertical_2023(self.__dfentrada, self.__dfsalida, continente_elegido, self.__lista_continentes, self.lista_de_colores, self.lista_de_tipo_de_lineas)
+          elif opcion == 4:
+              continente_elegido = input(f"Escriba un continente o 'Todos' para seleccionarlos todos: {', '.join(self.__lista_continentes)}: ")
+              self.graficar_barras_horizontal_2021(self.__dfentrada, self.__dfsalida, self.__dfproyecta2021, continente_elegido, self.__lista_continentes, self.lista_de_colores, self.lista_de_tipo_de_lineas)
+          elif opcion == 5:
+              self.regresion_lineal()
+          elif opcion == 6:
+              continente = input(f"Escriba un continente de la lista: {', '.join(self.__lista_continentes)}: ")
+              if continente in self.__lista_continentes:
+                  self.histograma_porcentaje_salida_continente(continente)
+              else:
+                  print("Continente no válido.")
+          elif opcion == 7:
+              self.exportar_datos()
+          
+#Principal
+obj_man = Manejador()
+
+obj_man.menu()
