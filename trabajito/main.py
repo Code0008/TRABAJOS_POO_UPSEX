@@ -2,7 +2,7 @@ import streamlit as st
 from funciones_principales import ImportarDatos, AnalisisDataframes, OperacionesEstadisticas, AnalisisModelosPredictivos
 import pandas as pd
 def agregar_datos(df, tipo_datos):
-    st.subheader("📝 Agregar Nuevos Datos")
+    st.subheader(" Agregar Nuevos Datos")
 
     if tipo_datos == "satisfaccion":
         columnas = ["Año", "Universidad", "Videojuego Educativo", "Satisfacción (%)", "Tasa de Retención (%)"]
@@ -35,7 +35,7 @@ def agregar_datos(df, tipo_datos):
     elif tipo_datos == "rendimiento":
         nuevo_dato["Estudiantes (n)"] = st.number_input(" Número de Estudiantes:", 1, 10000, 100)
         nuevo_dato["Rendimiento Promedio (%)"] = st.number_input(" Rendimiento Promedio (%):", 0, 100, 75)
-    if st.button("✅ Agregar Datos"):
+    if st.button(" Agregar Datos"):
         nuevo_df = pd.DataFrame([nuevo_dato])
         df_actualizado = pd.concat([df, nuevo_df], ignore_index=True)
         return df_actualizado
