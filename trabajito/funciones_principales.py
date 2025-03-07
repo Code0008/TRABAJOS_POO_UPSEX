@@ -2,11 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import  DecisionTreeRegressor
-from sklearn.tree import plot_tree
-from sklearn.preprocessing import LabelEncoder 
-
+import streamlit as st
 
 class ImportarDatos:
     def __init__(self):
@@ -64,8 +60,8 @@ class OperacionesEstadisticas:
     
     def dispersion(self):
         def calcular_dispercion(columna):
-            return {"Varianza": columna.var() , 
-                    "Desviacion Estandar": columna.std}
+            return {"Varianza": round(columna.var(),2) , 
+                    "Desviacion Estandar": round(columna.std(),2)}
         datos_rendimiento = self.datos.rendimiento
         datos_satis = self.datos.satisfaccion
 
@@ -77,12 +73,12 @@ class OperacionesEstadisticas:
         datos_rendimiento = self.datos.rendimiento[['Estudiantes (n)',
        'Rendimiento Promedio (%)']]
         sns.heatmap( datos_rendimiento.corr(), annot=True, cmap="coolwarm")
-        plt.show()
+        st.pyplot()
 
     def analisis_distribucion(self):
         datos_rendimiento = self.datos.rendimiento[['Rendimiento Promedio (%)']]
         datos_rendimiento.hist(grid=True)
-        plt.show()
+        st.pyplot()
 
 
 class AnalisisDataframes:
@@ -93,40 +89,44 @@ class AnalisisDataframes:
         return self.__datos
     
     def GrafLinRenAc(self, anio_a, anio_b):
+        fig,ax = plt.subplots()
         plt.title(f"GRAFICO DE LINEA DE {anio_a}-{anio_b}")
         data = self.datos.rendimiento.where((self.datos.rendimiento["Año"]<=anio_b) & (self.datos.rendimiento["Año"]>=anio_a)).dropna()
         
         for juego in data["Videojuego Educativo"].unique().tolist():
             juego_dat = data[data["Videojuego Educativo"]==juego]
-            plt.plot(juego_dat["Año"], juego_dat["Rendimiento Promedio (%)"], label=juego_dat["Universidad"].unique())
+            ax.plot(juego_dat["Año"], juego_dat["Rendimiento Promedio (%)"], label=juego_dat["Universidad"].unique())
         plt.legend()
-        plt.show()
+        st.pyplot(fig)
 
     def GrafBarCompSatisTasa(self, anio_a,anio_b, universidades):
+        fig,ax = plt.subplots()
         plt.title(f"COMPARACION SATISFACCION Y RETENCION UNIVERSIDADES {', '.join(universidades)} del año {anio_a} - {anio_b}")
         data = self.datos.satisfaccion.where((self.datos.rendimiento["Año"]<=anio_b) & (self.datos.rendimiento["Año"]>=anio_a)).dropna()
         legend = []
         for  key in universidades:
             universidad =  data[data["Universidad"]==key][["Año","Universidad","Satisfacción (%)","Tasa de Retención (%)"]]
-            años =  universidad["Año"].unique().tolist()[::-1]
+            años =  universidad["Año"].unique().tolist()[::-1][0]
             for indice,valor in enumerate(universidad["Satisfacción (%)"].values.tolist()[::-1]):
-                plt.bar(f"satisfaccion-{key}", valor)
-                legend.append(f"satisfaccion-{key}-{años[indice]}")
+                ax.bar(f"satisfaccion-{key}", valor)
+                legend.append(f"satisfaccion-{key}-{años+indice}")
         plt.legend(legend)
-        plt.show()
-        
+        st.pyplot(fig)   
+
     def GrafDispRelVidjuegRend(self, universidad):
+        fig,ax = plt.subplots()
         plt.title(f"COMPARACION NUMERO ESTUDIANTES Y RENDIMIENTO EN {universidad}")
         data = self.datos.rendimiento[self.datos.rendimiento["Universidad"]==universidad][["Estudiantes (n)", "Rendimiento Promedio (%)"]]
-        plt.scatter(data["Estudiantes (n)"], data["Rendimiento Promedio (%)"])
-        plt.show()
+        ax.scatter(data["Estudiantes (n)"], data["Rendimiento Promedio (%)"])
+        st.pyplot(fig)
 
     def GrafPasterlDistrSatis(self, año):
+        fig,ax = plt.subplots()
         plt.title(f" DISTRIBUCION DE SATISFACCION EN EL {año}")
         data = self.datos.satisfaccion[self.datos.satisfaccion["Año"]==año]
-        plt.pie(data["Satisfacción (%)"],labels=data["Universidad"].tolist(), autopct="%1.1f%%")
+        ax.pie(data["Satisfacción (%)"],labels=data["Universidad"].tolist(), autopct="%1.1f%%")
         plt.legend()
-        plt.show()
+        st.pyplot(fig)
 
 class AnalisisModelosPredictivos:
     def __init__(self, datos):
@@ -136,36 +136,36 @@ class AnalisisModelosPredictivos:
         return self.__datos
 
     def regresion_lineal(self, universidad):
-        plt.title(f"""PREDICION DE SATISFACCION EN RELACION A LA 
-                  CANTIDAD ALUMNOS EN LA {universidad} en los años
-                                 2021-2025""")
-        lin_reg = LinearRegression()
-        datos = self.datos.rendimiento[self.datos.rendimiento["Universidad"]==universidad]
-        ejeX= datos["Estudiantes (n)"].tolist()
-        ejeY = datos["Rendimiento Promedio (%)"].tolist()
-        lin_reg.fit(np.array(ejeX).reshape(-1,1), 
-                    np.array(ejeY).reshape(-1,1))
-        estudiantes = [np.random.randint(100,270) for _ in range(2021,2025 )]
-        predecir = lin_reg.predict(np.array(estudiantes).reshape(-1,1)).tolist()
-        plt.scatter(estudiantes, [round(valor[0]) for valor in predecir], label="PREDICCION", c="r")
-        plt.scatter(ejeX, ejeY, label="DATA ORIGINALES")
-        plt.plot(ejeX+estudiantes, lin_reg.predict(np.array(ejeX+estudiantes).reshape(-1,1)).tolist(),label="linea ajustada", c="b")
-        plt.legend()
-        plt.show()
+        fig,ax = plt.subplots()
 
-    def arbol(self, universidad):
-        tokenizadorAño = LabelEncoder()
-        tokenizadorUni = LabelEncoder()
-        tokenizadorVid = LabelEncoder()
-        datos = self.datos.satisfaccion[self.datos.satisfaccion["Universidad"]==universidad]
-        ejeX= datos.drop(columns=["Tasa de Retención (%)"])
-        ejeX["Año"] = tokenizadorAño.fit_transform(ejeX["Año"])
-        ejeX["Universidad"] = tokenizadorUni.fit_transform(ejeX["Universidad"])
-        ejeX["Videojuego Educativo"] = tokenizadorVid.fit_transform(ejeX["Videojuego Educativo"])
-        ejeY = datos["Tasa de Retención (%)"]
-        modelo_arbol = DecisionTreeRegressor( random_state=42)
-        modelo_arbol.fit(ejeX, ejeY)
-        plot_tree(modelo_arbol, filled=True, feature_names=ejeX.columns.tolist())
-        plt.show()
-        
+        plt.title(f"""PREDICCIÓN DE SATISFACCIÓN EN RELACIÓN A LA 
+                  CANTIDAD DE ALUMNOS EN {universidad} (2021-2025)""")
+
+        datos = self.datos.rendimiento[self.datos.rendimiento["Universidad"] == universidad]
+        ejeX = datos["Estudiantes (n)"].tolist()
+        ejeY = datos["Rendimiento Promedio (%)"].tolist()
+
+        X = np.array(ejeX)
+        y = np.array(ejeY)
+
+        X_mean = np.mean(X)
+        y_mean = np.mean(y)
+
+        numerador = np.sum((X - X_mean) * (y - y_mean))
+        denominador = np.sum((X - X_mean) ** 2)
+        angulo_uno = numerador / denominador
+        angulo_cero = y_mean - angulo_uno * X_mean
+
+        y_pred = angulo_cero + angulo_uno * X
+
+        estudiantes_nuevos = [np.random.randint(100, 270) for _ in range(5)]
+        y_pred_nuevos = [angulo_cero + angulo_uno * estudiante for estudiante in estudiantes_nuevos]
+
+        ax.scatter(X, y, label="Data Orignal", color="blue")
+        ax.plot(X, y_pred, label="Linea regresion", color="green")    
+        ax.scatter(estudiantes_nuevos, y_pred_nuevos, label="Prediccion año 2021-2025", color="purple")
+        ax.plot(estudiantes_nuevos, y_pred_nuevos, label="Linea predichos", color="red")
+
+        plt.legend()
+        st.pyplot(fig)
 
