@@ -107,7 +107,7 @@ class AnalisisDataframes:
         data = self.datos.satisfaccion.where((self.datos.rendimiento["Año"]<=anio_b) & (self.datos.rendimiento["Año"]>=anio_a)).dropna()
         legend = []
         for  key in universidades:
-            universidad =  data[data["Universidad"]==key][["Año","Universidad","Satisfaccion (%)","Tasa de Retencion (%)"]]
+            universidad =  data[data["Universidad"]==key][["Año", "Universidad", "Satisfaccion (%)", "Tasa de Retencion (%)"]]
             for indice,valor in enumerate(universidad["Satisfaccion (%)"].values.tolist()[::-1]):
                 ax.bar(f"satisfaccion-{key}", valor)
                 legend.append(f"satisfaccion-{key}-{anio_a+indice}")
@@ -230,107 +230,114 @@ def agregar_datos(df, tipo_datos):
         return df_actualizado
     return df
     
-def main():
-    st.title(" Analisis de Datos Educativos")
 
-    # Cargar datos
-    datos = ImportarDatos()
-    datos.cargar_datos()
 
-    # Menu en la barra lateral
-    menu_opcion = st.sidebar.radio(
-        " Menu Principal", 
-        ["Ver Datos", "Analisis de Dataframes", "Operaciones Estadisticas", 
-         "Modelos Predictivos", "Agregar Datos", "Exportar Datos"]
-    )
 
-    if menu_opcion == "Ver Datos":
-        st.subheader(" Datos Cargados")
-        st.write("###  Rendimiento Acadamico")
-        st.dataframe(datos.rendimiento)
-        st.write("###  Satisfaccion Estudiantil")
-        st.dataframe(datos.satisfaccion)
+class MenuManejador():
+    def __init__(self):
+        pass
+    def main(self):
+        st.title(" Analisis de Datos Educativos")
 
-    elif menu_opcion == "Analisis de Dataframes":
-        analizador = AnalisisDataframes(datos)
-        opcion = st.selectbox(" Seleccione un analisis:", [
-            "Grafico de Lineas - Rendimiento",
-            "Grafico de Barras - Satisfaccion y Retencion",
-            "Grafico de Dispersion - Videojuegos vs Rendimiento",
-            "Grafico de Pastel - Distribucion de Satisfaccion"
-        ])
-        
-        if opcion == "Grafico de Lineas - Rendimiento":
-            años = st.slider(" Seleccione el rango de años:", 2015, 2021, (2015, 2021))
-            analizador.GrafLinRenAc(años[0], años[1])
+        # Cargar datos
+        datos = ImportarDatos()
+        datos.cargar_datos()
 
-        elif opcion == "Grafico de Barras - Satisfaccion y Retencion":
-            años = st.slider(" Seleccione el rango de años:", 2015, 2021, (2015, 2021))
-            universidades = st.multiselect(" Seleccione universidades:", datos.rendimiento["Universidad"].unique())
-            if universidades:
-                analizador.GrafBarCompSatisTasa(años[0], años[1], universidades)
+        # Menu en la barra lateral
+        menu_opcion = st.sidebar.radio(
+            " Menu Principal", 
+            ["Ver Datos", "Analisis de Dataframes", "Operaciones Estadisticas", 
+            "Modelos Predictivos", "Agregar Datos", "Exportar Datos"]
+        )
 
-        elif opcion == "Grafico de Dispersion - Videojuegos vs Rendimiento":
+        if menu_opcion == "Ver Datos":
+            st.subheader(" Datos Cargados")
+            st.write("###  Rendimiento Acadamico")
+            st.dataframe(datos.rendimiento)
+            st.write("###  Satisfaccion Estudiantil")
+            st.dataframe(datos.satisfaccion)
+
+        elif menu_opcion == "Analisis de Dataframes":
+            analizador = AnalisisDataframes(datos)
+            opcion = st.selectbox(" Seleccione un analisis:", [
+                "Grafico de Lineas - Rendimiento",
+                "Grafico de Barras - Satisfaccion y Retencion",
+                "Grafico de Dispersion - Videojuegos vs Rendimiento",
+                "Grafico de Pastel - Distribucion de Satisfaccion"
+            ])
+            
+            if opcion == "Grafico de Lineas - Rendimiento":
+                años = st.slider(" Seleccione el rango de años:", 2015, 2021, (2015, 2021))
+                analizador.GrafLinRenAc(años[0], años[1])
+
+            elif opcion == "Grafico de Barras - Satisfaccion y Retencion":
+                años = st.slider(" Seleccione el rango de años:", 2015, 2021, (2015, 2021))
+                universidades = st.multiselect(" Seleccione universidades:", datos.rendimiento["Universidad"].unique())
+                if universidades:
+                    analizador.GrafBarCompSatisTasa(años[0], años[1], universidades)
+
+            elif opcion == "Grafico de Dispersion - Videojuegos vs Rendimiento":
+                universidad = st.selectbox(" Seleccione una universidad:", datos.rendimiento["Universidad"].unique())
+                analizador.GrafDispRelVidjuegRend(universidad)
+
+            elif opcion == "Grafico de Pastel - Distribucion de Satisfaccion":
+                año = st.slider(" Seleccione un año:", 2015, 2021, 2015)
+                analizador.GrafPasterlDistrSatis(año)
+
+        elif menu_opcion == "Operaciones Estadisticas":
+            estadisticas = OperacionesEstadisticas(datos)
+            opcion = st.selectbox(" Seleccione una operacion:", [
+                "Medidas de Tendencia Central",
+                "Medidas de Dispersion",
+                "Correlacion y Covarianza",
+                "Distribucion de Datos"
+            ])
+
+            if opcion == "Medidas de Tendencia Central":
+                rendimiento, satisfaccion = estadisticas.tendencia_central()
+                st.write(" **Medidas de Tendencia Central**")
+                st.write(f" **Rendimiento:** Media: {rendimiento['Media']}, Mediana: {rendimiento['Mediana']}, Moda: {rendimiento['Moda']}")
+                st.write(f" **Satisfaccion:** Media: {satisfaccion['Media']}, Mediana: {satisfaccion['Mediana']}, Moda: {satisfaccion['Moda']}")
+
+            elif opcion == "Medidas de Dispersion":
+                rendimiento, satisfaccion = estadisticas.dispersion()
+                st.write(" **Medidas de Dispersion**")
+                st.write(f" **Rendimiento:** Varianza: {rendimiento['Varianza']}, Desviacion Estandar: {rendimiento['Desviacion Estandar']}")
+                st.write(f" **Satisfaccion:** Varianza: {satisfaccion['Varianza']}, Desviacion Estandar: {satisfaccion['Desviacion Estandar']}")
+
+            elif opcion == "Correlacion y Covarianza":
+                estadisticas.correlacion_covarianza()
+
+            elif opcion == "Distribucion de Datos":
+                estadisticas.analisis_distribucion()
+
+        elif menu_opcion == "Modelos Predictivos":
+            modelos = AnalisisModelosPredictivos(datos)
+            opcion = st.selectbox(" Seleccione un modelo:", ["Regresion Lineal", "Media Movil"])
+
             universidad = st.selectbox(" Seleccione una universidad:", datos.rendimiento["Universidad"].unique())
-            analizador.GrafDispRelVidjuegRend(universidad)
 
-        elif opcion == "Grafico de Pastel - Distribucion de Satisfaccion":
-            año = st.slider(" Seleccione un año:", 2015, 2021, 2015)
-            analizador.GrafPasterlDistrSatis(año)
+            if opcion == "Regresion Lineal":
+                modelos.regresion_lineal(universidad)
+            elif opcion == "Media Movil":
+                ventana_años =  st.number_input("Ingrese ventana_años", 3, 5, step=1)
+                modelos.media_movil(datos,ventana_años,universidad)
 
-    elif menu_opcion == "Operaciones Estadisticas":
-        estadisticas = OperacionesEstadisticas(datos)
-        opcion = st.selectbox(" Seleccione una operacion:", [
-            "Medidas de Tendencia Central",
-            "Medidas de Dispersion",
-            "Correlacion y Covarianza",
-            "Distribucion de Datos"
-        ])
+        elif menu_opcion == "Agregar Datos":
+            tipo_datos = st.radio(" ¿Que datos desea agregar?", ["Satisfaccion", "Rendimiento"])
+            if tipo_datos == "Satisfaccion":
+                datos.actualizar_rend = agregar_datos(datos.rendimiento, "satisfaccion")
 
-        if opcion == "Medidas de Tendencia Central":
-            rendimiento, satisfaccion = estadisticas.tendencia_central()
-            st.write(" **Medidas de Tendencia Central**")
-            st.write(f" **Rendimiento:** Media: {rendimiento['Media']}, Mediana: {rendimiento['Mediana']}, Moda: {rendimiento['Moda']}")
-            st.write(f" **Satisfaccion:** Media: {satisfaccion['Media']}, Mediana: {satisfaccion['Mediana']}, Moda: {satisfaccion['Moda']}")
+            else:
+                datos.actualizar_satis = agregar_datos(datos.satisfaccion, "rendimiento")
+            
+        elif menu_opcion == "Exportar Datos":
+            nombre_rend = st.text_input(" Nombre del archivo de rendimiento:", "rendimiento_exportado.csv")
+            nombre_satis = st.text_input(" Nombre del archivo de satisfaccion:", "satisfaccion_exportado.xlsx")
 
-        elif opcion == "Medidas de Dispersion":
-            rendimiento, satisfaccion = estadisticas.dispersion()
-            st.write(" **Medidas de Dispersion**")
-            st.write(f" **Rendimiento:** Varianza: {rendimiento['Varianza']}, Desviacion Estandar: {rendimiento['Desviacion Estandar']}")
-            st.write(f" **Satisfaccion:** Varianza: {satisfaccion['Varianza']}, Desviacion Estandar: {satisfaccion['Desviacion Estandar']}")
-
-        elif opcion == "Correlacion y Covarianza":
-            estadisticas.correlacion_covarianza()
-
-        elif opcion == "Distribucion de Datos":
-            estadisticas.analisis_distribucion()
-
-    elif menu_opcion == "Modelos Predictivos":
-        modelos = AnalisisModelosPredictivos(datos)
-        opcion = st.selectbox(" Seleccione un modelo:", ["Regresion Lineal", "Media Movil"])
-
-        universidad = st.selectbox(" Seleccione una universidad:", datos.rendimiento["Universidad"].unique())
-
-        if opcion == "Regresion Lineal":
-            modelos.regresion_lineal(universidad)
-        elif opcion == "Media Movil":
-            ventana_años =  st.number_input("Ingrese ventana_años", 3, 5, step=1)
-            modelos.media_movil(datos,ventana_años,universidad)
-
-    elif menu_opcion == "Agregar Datos":
-        tipo_datos = st.radio(" ¿Que datos desea agregar?", ["Satisfaccion", "Rendimiento"])
-        if tipo_datos == "Satisfaccion":
-            datos.actualizar_rend = agregar_datos(datos.rendimiento, "satisfaccion")
-
-        else:
-            datos.actualizar_satis = agregar_datos(datos.satisfaccion, "rendimiento")
-        
-    elif menu_opcion == "Exportar Datos":
-        nombre_rend = st.text_input(" Nombre del archivo de rendimiento:", "rendimiento_exportado.csv")
-        nombre_satis = st.text_input(" Nombre del archivo de satisfaccion:", "satisfaccion_exportado.xlsx")
-
-        if st.button("Exportar Datos"):
-            datos.exportar_datos(nombre_rend, nombre_satis)
+            if st.button("Exportar Datos"):
+                datos.exportar_datos(nombre_rend, nombre_satis)
 
 if __name__ == '__main__':
-    main()
+    manejador = MenuManejador()
+    manejador.main()
