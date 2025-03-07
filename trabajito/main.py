@@ -90,7 +90,6 @@ class AnalisisDataframes:
     
     def GrafLinRenAc(self, anio_a, anio_b):
         fig,ax = plt.subplots()
-        fig 
         plt.title(f"GRAFICO DE LINEA DE {anio_a}-{anio_b}")
         data = self.datos.rendimiento.where((self.datos.rendimiento["Año"]<=anio_b) & (self.datos.rendimiento["Año"]>=anio_a)).dropna()
         
