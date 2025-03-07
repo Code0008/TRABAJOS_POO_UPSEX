@@ -169,6 +169,25 @@ class AnalisisModelosPredictivos:
 
         plt.legend()
         st.pyplot(fig)
+    def media_movil(self, datos, ventana_años, universidad):
+        data  = datos.satisfaccion[datos.satisfaccion["Universidad"]==universidad]
+        años =  np.array(data["Año"].tolist()+[2021])
+        random_satis = np.random.randint(80,100)
+        satisfaccion = np.array(data["Satisfacción (%)"].tolist()+[random_satis])
+        
+        media_movil = [np.mean(satisfaccion[i-ventana_años:i]) if i >=ventana_años else None for i in range(len(satisfaccion)+1)]
+        prediccion_siguiente = media_movil[-1]
+        año_predicho=  años[-1]+1
+        st.text(F"PREDICCION PARA EL 2022 CON UNA SATISFACCION DE {random_satis} ")
+        plt.figure(figsize=(15,15))
+        plt.plot(años, satisfaccion, marker='x', label = "Satisfaccion Real")
+        plt.plot(años[ventana_años-1:], media_movil[ventana_años-1:-1], marker="s", label = f"Prediccion {año_predicho}: {round(prediccion_siguiente, 2)}% ")
+        plt.xlabel("Año")
+        plt.ylabel("Satisfacción (%)")
+        plt.legend()
+        st.pyplot(plt)
+        
+        
 
 
 def agregar_datos(df, tipo_datos):
@@ -288,15 +307,15 @@ def main():
 
     elif menu_opcion == "Modelos Predictivos":
         modelos = AnalisisModelosPredictivos(datos)
-        opcion = st.selectbox(" Seleccione un modelo:", ["Regresión Lineal", "Opcion chafita p cause"])
+        opcion = st.selectbox(" Seleccione un modelo:", ["Regresión Lineal", "Media Movil"])
 
         universidad = st.selectbox(" Seleccione una universidad:", datos.rendimiento["Universidad"].unique())
 
         if opcion == "Regresión Lineal":
             modelos.regresion_lineal(universidad)
-        elif opcion == "Árbol de Decisión":
-            #modelos.arbol(universidad)
-            pass
+        elif opcion == "Media Movil":
+            ventana_años =  st.number_input("Ingrese ventana_años", 3, 5, step=1)
+            modelos.media_movil(datos,ventana_años,universidad)
 
     elif menu_opcion == "Agregar Datos":
         tipo_datos = st.radio(" ¿Qué datos desea agregar?", ["Satisfacción", "Rendimiento"])
