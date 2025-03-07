@@ -34,7 +34,7 @@ class ImportarDatos:
             print(f"Datos de rendimiento exportados a: {nombre_rendimiento}")
 
             self.__satisfacion.to_excel(nombre_satisfaccion, sheet_name="Sheet1", index=False)
-            print(f" Datos de satisfacción exportados a: {nombre_satisfaccion}")
+            print(f" Datos de satisfaccion exportados a: {nombre_satisfaccion}")
 
         except Exception as e:
             print(f"Error al exportar los datos: {e}")
@@ -55,7 +55,7 @@ class OperacionesEstadisticas:
                     "Moda": columna.mode().values.tolist()}
         datos_rendimiento = self.datos.rendimiento
         datos_satis = self.datos.satisfaccion
-        return calcular_medidas(datos_rendimiento["Rendimiento Promedio (%)"]), calcular_medidas(datos_satis["Satisfacción (%)"])
+        return calcular_medidas(datos_rendimiento["Rendimiento Promedio (%)"]), calcular_medidas(datos_satis["Satisfaccion (%)"])
       
     
     def dispersion(self):
@@ -65,7 +65,7 @@ class OperacionesEstadisticas:
         datos_rendimiento = self.datos.rendimiento
         datos_satis = self.datos.satisfaccion
 
-        return calcular_dispercion(datos_rendimiento["Rendimiento Promedio (%)"]),  calcular_dispercion(datos_satis["Satisfacción (%)"])
+        return calcular_dispercion(datos_rendimiento["Rendimiento Promedio (%)"]),  calcular_dispercion(datos_satis["Satisfaccion (%)"])
 
     
     def correlacion_covarianza(self):
@@ -107,8 +107,8 @@ class AnalisisDataframes:
         data = self.datos.satisfaccion.where((self.datos.rendimiento["Año"]<=anio_b) & (self.datos.rendimiento["Año"]>=anio_a)).dropna()
         legend = []
         for  key in universidades:
-            universidad =  data[data["Universidad"]==key][["Año","Universidad","Satisfacción (%)","Tasa de Retención (%)"]]
-            for indice,valor in enumerate(universidad["Satisfacción (%)"].values.tolist()[::-1]):
+            universidad =  data[data["Universidad"]==key][["Año","Universidad","Satisfaccion (%)","Tasa de Retencion (%)"]]
+            for indice,valor in enumerate(universidad["Satisfaccion (%)"].values.tolist()[::-1]):
                 ax.bar(f"satisfaccion-{key}", valor)
                 legend.append(f"satisfaccion-{key}-{anio_a+indice}")
         ax.legend(legend)
@@ -125,7 +125,7 @@ class AnalisisDataframes:
         fig,ax = plt.subplots()
         plt.title(f" DISTRIBUCION DE SATISFACCION EN EL {año}")
         data = self.datos.satisfaccion[self.datos.satisfaccion["Año"]==año]
-        ax.pie(data["Satisfacción (%)"],labels=data["Universidad"].tolist(), autopct="%1.1f%%")
+        ax.pie(data["Satisfaccion (%)"],labels=data["Universidad"].tolist(), autopct="%1.1f%%")
         plt.legend()
         st.pyplot(fig)
 
@@ -139,7 +139,7 @@ class AnalisisModelosPredictivos:
     def regresion_lineal(self, universidad):
         fig,ax = plt.subplots()
 
-        plt.title(f"""PREDICCIÓN DE SATISFACCIÓN EN RELACIÓN A LA 
+        plt.title(f"""PREDICCIoN DE SATISFACCIoN EN RELACIoN A LA 
                   CANTIDAD DE ALUMNOS EN {universidad} (2021-2025)""")
 
         datos = self.datos.rendimiento[self.datos.rendimiento["Universidad"] == universidad]
@@ -173,7 +173,7 @@ class AnalisisModelosPredictivos:
         data  = datos.satisfaccion[datos.satisfaccion["Universidad"]==universidad]
         años =  np.array(data["Año"].tolist()+[2021])
         random_satis = np.random.randint(80,100)
-        satisfaccion = np.array(data["Satisfacción (%)"].tolist()+[random_satis])
+        satisfaccion = np.array(data["Satisfaccion (%)"].tolist()+[random_satis])
         
         media_movil = [np.mean(satisfaccion[i-ventana_años:i]) if i >=ventana_años else None for i in range(len(satisfaccion)+1)]
         prediccion_siguiente = media_movil[-1]
@@ -183,7 +183,7 @@ class AnalisisModelosPredictivos:
         plt.plot(años, satisfaccion, marker='x', label = "Satisfaccion Real")
         plt.plot(años[ventana_años-1:], media_movil[ventana_años-1:-1], marker="s", label = f"Prediccion {año_predicho}: {round(prediccion_siguiente, 2)}% ")
         plt.xlabel("Año")
-        plt.ylabel("Satisfacción (%)")
+        plt.ylabel("Satisfaccion (%)")
         plt.legend()
         st.pyplot(plt)
         
@@ -194,7 +194,7 @@ def agregar_datos(df, tipo_datos):
     st.subheader(" Agregar Nuevos Datos")
 
     if tipo_datos == "satisfaccion":
-        columnas = ["Año", "Universidad", "Videojuego Educativo", "Satisfacción (%)", "Tasa de Retención (%)"]
+        columnas = ["Año", "Universidad", "Videojuego Educativo", "Satisfaccion (%)", "Tasa de Retencion (%)"]
     elif tipo_datos == "rendimiento":
         columnas = ["Año", "Universidad", "Videojuego Educativo", "Estudiantes (n)", "Rendimiento Promedio (%)"]
 
@@ -218,11 +218,11 @@ def agregar_datos(df, tipo_datos):
         nuevo_dato["Videojuego Educativo"] = st.text_input(" Nombre del Videojuego Educativo:")
 
     if tipo_datos == "satisfaccion":
-        nuevo_dato["Satisfacción (%)"] = st.number_input(" Porcentaje de Satisfacción:", 0, 100, 50)
-        nuevo_dato["Tasa de Retención (%)"] = st.number_input(" Tasa de Retención (%):", 0, 100, 70)
+        nuevo_dato["Satisfaccion (%)"] = st.number_input(" Porcentaje de Satisfaccion:", 0, 100, 50)
+        nuevo_dato["Tasa de Retencion (%)"] = st.number_input(" Tasa de Retencion (%):", 0, 100, 70)
 
     elif tipo_datos == "rendimiento":
-        nuevo_dato["Estudiantes (n)"] = st.number_input(" Número de Estudiantes:", 1, 10000, 100)
+        nuevo_dato["Estudiantes (n)"] = st.number_input(" Numero de Estudiantes:", 1, 10000, 100)
         nuevo_dato["Rendimiento Promedio (%)"] = st.number_input(" Rendimiento Promedio (%):", 0, 100, 75)
     if st.button(" Agregar Datos"):
         nuevo_df = pd.DataFrame([nuevo_dato])
@@ -231,95 +231,95 @@ def agregar_datos(df, tipo_datos):
     return df
     
 def main():
-    st.title(" Análisis de Datos Educativos")
+    st.title(" Analisis de Datos Educativos")
 
     # Cargar datos
     datos = ImportarDatos()
     datos.cargar_datos()
 
-    # Menú en la barra lateral
+    # Menu en la barra lateral
     menu_opcion = st.sidebar.radio(
-        " Menú Principal", 
-        ["Ver Datos", "Análisis de Dataframes", "Operaciones Estadísticas", 
+        " Menu Principal", 
+        ["Ver Datos", "Analisis de Dataframes", "Operaciones Estadisticas", 
          "Modelos Predictivos", "Agregar Datos", "Exportar Datos"]
     )
 
     if menu_opcion == "Ver Datos":
         st.subheader(" Datos Cargados")
-        st.write("###  Rendimiento Académico")
+        st.write("###  Rendimiento Acadamico")
         st.dataframe(datos.rendimiento)
-        st.write("###  Satisfacción Estudiantil")
+        st.write("###  Satisfaccion Estudiantil")
         st.dataframe(datos.satisfaccion)
 
-    elif menu_opcion == "Análisis de Dataframes":
+    elif menu_opcion == "Analisis de Dataframes":
         analizador = AnalisisDataframes(datos)
-        opcion = st.selectbox(" Seleccione un análisis:", [
-            "Gráfico de Líneas - Rendimiento",
-            "Gráfico de Barras - Satisfacción y Retención",
-            "Gráfico de Dispersión - Videojuegos vs Rendimiento",
-            "Gráfico de Pastel - Distribución de Satisfacción"
+        opcion = st.selectbox(" Seleccione un analisis:", [
+            "Grafico de Lineas - Rendimiento",
+            "Grafico de Barras - Satisfaccion y Retencion",
+            "Grafico de Dispersion - Videojuegos vs Rendimiento",
+            "Grafico de Pastel - Distribucion de Satisfaccion"
         ])
         
-        if opcion == "Gráfico de Líneas - Rendimiento":
+        if opcion == "Grafico de Lineas - Rendimiento":
             años = st.slider(" Seleccione el rango de años:", 2015, 2021, (2015, 2021))
             analizador.GrafLinRenAc(años[0], años[1])
 
-        elif opcion == "Gráfico de Barras - Satisfacción y Retención":
+        elif opcion == "Grafico de Barras - Satisfaccion y Retencion":
             años = st.slider(" Seleccione el rango de años:", 2015, 2021, (2015, 2021))
             universidades = st.multiselect(" Seleccione universidades:", datos.rendimiento["Universidad"].unique())
             if universidades:
                 analizador.GrafBarCompSatisTasa(años[0], años[1], universidades)
 
-        elif opcion == "Gráfico de Dispersión - Videojuegos vs Rendimiento":
+        elif opcion == "Grafico de Dispersion - Videojuegos vs Rendimiento":
             universidad = st.selectbox(" Seleccione una universidad:", datos.rendimiento["Universidad"].unique())
             analizador.GrafDispRelVidjuegRend(universidad)
 
-        elif opcion == "Gráfico de Pastel - Distribución de Satisfacción":
+        elif opcion == "Grafico de Pastel - Distribucion de Satisfaccion":
             año = st.slider(" Seleccione un año:", 2015, 2021, 2015)
             analizador.GrafPasterlDistrSatis(año)
 
-    elif menu_opcion == "Operaciones Estadísticas":
+    elif menu_opcion == "Operaciones Estadisticas":
         estadisticas = OperacionesEstadisticas(datos)
-        opcion = st.selectbox(" Seleccione una operación:", [
+        opcion = st.selectbox(" Seleccione una operacion:", [
             "Medidas de Tendencia Central",
-            "Medidas de Dispersión",
-            "Correlación y Covarianza",
-            "Distribución de Datos"
+            "Medidas de Dispersion",
+            "Correlacion y Covarianza",
+            "Distribucion de Datos"
         ])
 
         if opcion == "Medidas de Tendencia Central":
             rendimiento, satisfaccion = estadisticas.tendencia_central()
             st.write(" **Medidas de Tendencia Central**")
             st.write(f" **Rendimiento:** Media: {rendimiento['Media']}, Mediana: {rendimiento['Mediana']}, Moda: {rendimiento['Moda']}")
-            st.write(f" **Satisfacción:** Media: {satisfaccion['Media']}, Mediana: {satisfaccion['Mediana']}, Moda: {satisfaccion['Moda']}")
+            st.write(f" **Satisfaccion:** Media: {satisfaccion['Media']}, Mediana: {satisfaccion['Mediana']}, Moda: {satisfaccion['Moda']}")
 
-        elif opcion == "Medidas de Dispersión":
+        elif opcion == "Medidas de Dispersion":
             rendimiento, satisfaccion = estadisticas.dispersion()
-            st.write(" **Medidas de Dispersión**")
-            st.write(f" **Rendimiento:** Varianza: {rendimiento['Varianza']}, Desviación Estándar: {rendimiento['Desviacion Estandar']}")
-            st.write(f" **Satisfacción:** Varianza: {satisfaccion['Varianza']}, Desviación Estándar: {satisfaccion['Desviacion Estandar']}")
+            st.write(" **Medidas de Dispersion**")
+            st.write(f" **Rendimiento:** Varianza: {rendimiento['Varianza']}, Desviacion Estandar: {rendimiento['Desviacion Estandar']}")
+            st.write(f" **Satisfaccion:** Varianza: {satisfaccion['Varianza']}, Desviacion Estandar: {satisfaccion['Desviacion Estandar']}")
 
-        elif opcion == "Correlación y Covarianza":
+        elif opcion == "Correlacion y Covarianza":
             estadisticas.correlacion_covarianza()
 
-        elif opcion == "Distribución de Datos":
+        elif opcion == "Distribucion de Datos":
             estadisticas.analisis_distribucion()
 
     elif menu_opcion == "Modelos Predictivos":
         modelos = AnalisisModelosPredictivos(datos)
-        opcion = st.selectbox(" Seleccione un modelo:", ["Regresión Lineal", "Media Movil"])
+        opcion = st.selectbox(" Seleccione un modelo:", ["Regresion Lineal", "Media Movil"])
 
         universidad = st.selectbox(" Seleccione una universidad:", datos.rendimiento["Universidad"].unique())
 
-        if opcion == "Regresión Lineal":
+        if opcion == "Regresion Lineal":
             modelos.regresion_lineal(universidad)
         elif opcion == "Media Movil":
             ventana_años =  st.number_input("Ingrese ventana_años", 3, 5, step=1)
             modelos.media_movil(datos,ventana_años,universidad)
 
     elif menu_opcion == "Agregar Datos":
-        tipo_datos = st.radio(" ¿Qué datos desea agregar?", ["Satisfacción", "Rendimiento"])
-        if tipo_datos == "Satisfacción":
+        tipo_datos = st.radio(" ¿Que datos desea agregar?", ["Satisfaccion", "Rendimiento"])
+        if tipo_datos == "Satisfaccion":
             datos.actualizar_rend = agregar_datos(datos.rendimiento, "satisfaccion")
 
         else:
@@ -327,7 +327,7 @@ def main():
         
     elif menu_opcion == "Exportar Datos":
         nombre_rend = st.text_input(" Nombre del archivo de rendimiento:", "rendimiento_exportado.csv")
-        nombre_satis = st.text_input(" Nombre del archivo de satisfacción:", "satisfaccion_exportado.xlsx")
+        nombre_satis = st.text_input(" Nombre del archivo de satisfaccion:", "satisfaccion_exportado.xlsx")
 
         if st.button("Exportar Datos"):
             datos.exportar_datos(nombre_rend, nombre_satis)
