@@ -69,16 +69,18 @@ class OperacionesEstadisticas:
 
     
     def correlacion_covarianza(self):
-        plt.title("Matriz de Correlación - Heatmap")
+        st.subheader("MATRIZ DE CORRELACION - HEAT MAP")
+
         datos_rendimiento = self.datos.rendimiento[['Estudiantes (n)',
        'Rendimiento Promedio (%)']]
+        plt.figure(figsize=(6,4))
         sns.heatmap( datos_rendimiento.corr(), annot=True, cmap="coolwarm")
-        st.pyplot()
+        st.pyplot(plt)
 
     def analisis_distribucion(self):
         datos_rendimiento = self.datos.rendimiento[['Rendimiento Promedio (%)']]
         datos_rendimiento.hist(grid=True)
-        st.pyplot()
+        st.pyplot(plt)
 
 
 class AnalisisDataframes:
@@ -100,17 +102,16 @@ class AnalisisDataframes:
         st.pyplot(fig)
 
     def GrafBarCompSatisTasa(self, anio_a,anio_b, universidades):
-        fig,ax = plt.subplots()
+        fig,ax = plt.subplots(figsize=(15,15))
         plt.title(f"COMPARACION SATISFACCION Y RETENCION UNIVERSIDADES {', '.join(universidades)} del año {anio_a} - {anio_b}")
         data = self.datos.satisfaccion.where((self.datos.rendimiento["Año"]<=anio_b) & (self.datos.rendimiento["Año"]>=anio_a)).dropna()
         legend = []
         for  key in universidades:
             universidad =  data[data["Universidad"]==key][["Año","Universidad","Satisfacción (%)","Tasa de Retención (%)"]]
-            años =  universidad["Año"].unique().tolist()[::-1][0]
             for indice,valor in enumerate(universidad["Satisfacción (%)"].values.tolist()[::-1]):
                 ax.bar(f"satisfaccion-{key}", valor)
                 legend.append(f"satisfaccion-{key}-{anio_a+indice}")
-        plt.legend(legend)
+        ax.legend(legend)
         st.pyplot(fig)   
 
     def GrafDispRelVidjuegRend(self, universidad):
@@ -287,14 +288,15 @@ def main():
 
     elif menu_opcion == "Modelos Predictivos":
         modelos = AnalisisModelosPredictivos(datos)
-        opcion = st.selectbox(" Seleccione un modelo:", ["Regresión Lineal", "Árbol de Decisión"])
+        opcion = st.selectbox(" Seleccione un modelo:", ["Regresión Lineal", "Opcion chafita p cause"])
 
         universidad = st.selectbox(" Seleccione una universidad:", datos.rendimiento["Universidad"].unique())
 
         if opcion == "Regresión Lineal":
             modelos.regresion_lineal(universidad)
         elif opcion == "Árbol de Decisión":
-            modelos.arbol(universidad)
+            #modelos.arbol(universidad)
+            pass
 
     elif menu_opcion == "Agregar Datos":
         tipo_datos = st.radio(" ¿Qué datos desea agregar?", ["Satisfacción", "Rendimiento"])
