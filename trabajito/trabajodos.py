@@ -85,7 +85,8 @@ class AnalisisAgua:
         plt.show()
     
     def regresion_lineal(self, indicador):
-        datos = self.__data_agua[self.__data_agua["Indicador"] == indicador][["Año-2015"]].dropna(axis=1).values.flatten()
+     
+        datos = self.__data_agua[self.__data_agua["Indicador"] == indicador][["Año-2015", "Año-2019", "Año-2022"]].dropna(axis=1).values.flatten()
         anios = np.array([2015, 2019, 2022])
         
         n = len(anios)
@@ -99,6 +100,7 @@ class AnalisisAgua:
         predicciones = pendiente * anios_prediccion + intercepto
 
         datos_linea = pendiente * anios + intercepto
+        print(anios, datos)
         plt.figure(figsize=(8, 5))
         plt.scatter(anios, datos, color='red', label="Datos")
         plt.plot([2015,2019,2022]+anios_prediccion.tolist(), datos_linea.tolist()+predicciones.tolist(), color='blue', label="Linea ajustada")
@@ -124,25 +126,51 @@ class AnalisisAgua:
         plt.xlabel("Porcentaje/Valor")
         plt.ylabel("Frecuencia")
         plt.title(f"Distribución de valores - {anio}")
-        plt.grid(axis="y", linestyle="--", alpha=0.7)
+        plt.grid(axis="y", linestyle="--")
+        plt.show()
+
+    def graficar_lineas_salida(self, anio_a, anio_b):
+        data_filtrado = self.__data_agua[["Indicador", f"Año-{anio_a}", f"Año-{anio_b}"]].dropna()
+        
+        plt.figure(figsize=(10, 5))
+        for _, fila in data_filtrado.iterrows():
+            plt.plot([anio_a, anio_b], [fila[f"Año-{anio_a}"], fila[f"Año-{anio_b}"]], marker='s', linestyle='dashed', label=fila["Indicador"])
+        
+        plt.xlabel("Año")
+        plt.ylabel("Porcentaje de Salida")
+        plt.title("Tendencia de Salida del Agua")
+        plt.legend()
+        plt.show()
+ 
+    def graficar_lineas_entrada(self, anio_a, anio_b):
+        data_filtrado = self.__data_agua[["Indicador", f"Año-{anio_a}", f"Año-{anio_b}"]].dropna()
+        
+        plt.figure(figsize=(10, 5))
+        for _, fila in data_filtrado.iterrows():
+            plt.plot([anio_a, anio_b], [fila[f"Año-{anio_a}"], fila[f"Año-{anio_b}"]], marker='o', label=fila["Indicador"])
+        
+        plt.xlabel("Año")
+        plt.ylabel("Porcentaje de Entrada")
+        plt.title("Tendencia de Entrada del Agua")
+        plt.legend()
         plt.show()
 
 class Manejador():
     def __init__(self):
         self.__analizador_agua = AnalisisAgua()
 
-    def Menu(self,):
+    def Menu(self):
         #self.__analizador_agua.graficar_lineas(2015, 2019)
         try:
             carga = CargaDatos()
             self.__analizador_agua.set_data_agua = carga.data
+            print(carga.data)
         except Exception as e:
             print(F"OCURRIO UN ERROR {e}")
         else:
             while True:
-
                 print(f"""
-                    1. xd
+                    1. Grafico de lineas por año
                     2. Grfico de barras vertical
                     3. Grafico de barras horizontal
                     4. Regresion lineal
@@ -150,6 +178,13 @@ class Manejador():
                     """)
                 
                 match Validadores.validarEntero(1,6,"[!] INGRESE SU OPCION: "):
+                    case 1:
+                        año_a =  Validadores.validar_opciones_multiples_int([2015,2019,2022], "[!] Ingrese año a: ")
+                        año_b =  Validadores.validar_opciones_multiples_int([2015,2019,2022], "[!] Ingrese año b: ")
+                        match Validadores.validar_opciones_multiples_int([1,2], "[!]Seleccione grafico de lineas 1.Entrada| 2.Salida: "):
+                            case 1: self.__analizador_agua.graficar_lineas_entrada(año_a, año_b)
+                            case 2: self.__analizador_agua.graficar_lineas_salida(año_a, año_b)
+
                     case 2: self.__analizador_agua.graficar_barras_vertical()
                     case 3:self.__analizador_agua.graficar_barras_horizontal()
                     case 4:self.__analizador_agua.regresion_lineal("Proporción de la población que dispone de agua por red pública")
